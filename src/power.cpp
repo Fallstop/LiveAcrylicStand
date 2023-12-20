@@ -1,5 +1,9 @@
 #include <power.h>
 
+#include <Bounce2.h>
+#include <config.h>
+#include <light.h>
+
 Bounce bounce = Bounce();
 
 bool powerState = false;
@@ -33,11 +37,21 @@ void loopPower()
         digitalWrite(POWER_LIGHT_PIN, powerState); // WRITE THE NEW ledState
         if (powerState)
         {
-            Serial.println("Power on");
+            powerOnEvent();
         }
         else
         {
-            Serial.println("Power off");
+            powerOffEvent();
         }
     }
+}
+
+void powerOnEvent() {
+    Serial.println("Power on");
+    lightPowerChange();
+}
+
+void powerOffEvent() {
+    Serial.println("Power off");
+    lightPowerChange();
 }

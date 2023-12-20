@@ -1,3 +1,4 @@
-#include <Adafruit_NeoPixel.h>
-#include <config.h>
-#include <mqtt.h>
+void lightPowerChange();
+void loopLight();
+void setupLight();
+void floodAtBrightness(int r, int g, int b, int brightness);

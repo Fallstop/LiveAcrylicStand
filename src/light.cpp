@@ -1,11 +1,20 @@
 #include <light.h>
 
+#include <Adafruit_NeoPixel.h>
+#include <config.h>
+#include <mqtt.h>
+
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_COUNT, NEOPIXEL_PIN, NEOPIXEL_CONFIG);
 
 int currentBrightness = 0;
 
 void floodAtBrightness(int r, int g, int b, int brightness)
 {
+    if (brightness == 0) {
+        strip.clear();
+        strip.show();
+        return;
+    }
     float ratio = (float)brightness / 255.0;
     strip.fill(strip.Color(r * ratio, g * ratio, b * ratio));
     strip.show();
@@ -25,9 +34,14 @@ void setupLight()
 
 void loopLight() {
     bool lightingUp = getRemoteState() || getLocalState();
-    if (lightingUp && currentBrightness < STRONG_GLOW_BRIGHTNESS) {
-        currentBrightness += 1;
-    } else if (!lightingUp && currentBrightness > WEAK_GLOW_BRIGHTNESS) {
-        currentBrightness -= 1;
+    int goalBrightness = lightingUp ? STRONG_GLOW_BRIGHTNESS : WEAK_GLOW_BRIGHTNESS;
+    if (currentBrightness != goalBrightness) {
+        currentBrightness += (goalBrightness > currentBrightness) ? 1 : -1;
+        floodAtBrightness(GLOW_COLOUR, currentBrightness);
     }
+}
+
+void lightPowerChange() {
+    currentBrightness = 0;
+    floodAtBrightness(GLOW_COLOUR, currentBrightness);
 }
