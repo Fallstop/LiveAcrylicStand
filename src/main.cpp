@@ -1,14 +1,24 @@
 #include <Arduino.h>
 #include <power.h>
+#include <light.h>
+#include <mqtt.h>
 
 void setup() {
-  setupPower();
+	Serial.begin(115200);
+	setupPower();
+	setupLight();
+	setupWifi();
+	setupMQTT();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  loopPower();
-  if (getPowerState()) {
-    
-  }
+	WifiStateEnum wifiState = loopWifi();
+
+	loopPower();
+	loopMQTT(wifiState);
+
+	bool powerState = loopPower();
+	if (powerState) {
+		loopLight(wifiState);
+	}
 }

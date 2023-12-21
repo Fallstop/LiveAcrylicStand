@@ -32,7 +32,15 @@ void setupLight()
     strip.show();
 }
 
-void loopLight() {
+void loopLight(WifiStateEnum wifiState) {
+    if (wifiState == ConfigurationWifi) {
+        fastBreathEffect(255,255,255);
+        return;
+    } else if (wifiState != ConnectedWifi) {
+        fastBreathEffect(GLOW_COLOUR);
+        return;
+    }
+
     bool lightingUp = getRemoteState() || getLocalState();
     int goalBrightness = lightingUp ? STRONG_GLOW_BRIGHTNESS : WEAK_GLOW_BRIGHTNESS;
     if (currentBrightness != goalBrightness) {
@@ -44,4 +52,15 @@ void loopLight() {
 void lightPowerChange() {
     currentBrightness = 0;
     floodAtBrightness(GLOW_COLOUR, currentBrightness);
+}
+
+bool fastBreathEffectState = false;
+void fastBreathEffect(int r, int b, int g) {
+    int goalBrightness = fastBreathEffectState ? STRONG_GLOW_BRIGHTNESS : WEAK_GLOW_BRIGHTNESS;
+    if (currentBrightness != goalBrightness) {
+        currentBrightness += (goalBrightness > currentBrightness) ? 2 : -2;
+        floodAtBrightness(r, b, g, currentBrightness);
+    } else {
+        fastBreathEffectState = !fastBreathEffectState;
+    }
 }

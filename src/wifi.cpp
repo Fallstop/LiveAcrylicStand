@@ -1,12 +1,18 @@
 #include <WiFiManager.h>
+#include <wifi.h>
 
+WifiStateEnum wifiState = InitalWifi;
 
+WiFiManager wm;
 
 void setupWifi() {
-    WiFiManager wm;
+    wifiState = ConnectingWifi;
+
+
+    wm.setConfigPortalBlocking(false);
+    wm.setConfigPortalTimeout(60);
 
     // reset settings - wipe stored credentials for testing
-    // these are stored by the esp library
     // wm.resetSettings();
 
     // Automatically connect using saved credentials,
@@ -14,18 +20,16 @@ void setupWifi() {
     // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
     // then goes into a blocking loop awaiting configuration and will return success result
 
-    bool res;
-    // res = wm.autoConnect(); // auto generated AP name from chipid
-    // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-    res = wm.autoConnect("AutoConnectAP","password"); // password protected ap
-
-    if(!res) {
-        Serial.println("Failed to connect");
-        // ESP.restart();
-    } 
-    else {
-        //if you get here you have connected to the WiFi    
-        Serial.println("connected...yeey :)");
+    if (wm.autoConnect()) {
+        wifiState = ConnectedWifi;
+    } else {
+        wifiState = ConfigurationWifi;
     }
+}
 
+WifiStateEnum loopWifi() {
+    if (wm.process()){
+        wifiState = ConnectedWifi;
+    }
+    return wifiState;
 }

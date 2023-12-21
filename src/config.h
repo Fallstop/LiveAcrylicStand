@@ -7,6 +7,8 @@ constexpr const char* MQTT_TOPIC = "liveacrylicstand/m3q95oZryujCAX";
 constexpr int POWER_SWITCH_PIN = 5; // D1
 constexpr int POWER_LIGHT_PIN = 16; // D0
 
+constexpr int PRIMARY_BUTTON_PIN = 14; // D5
+
 constexpr int NEOPIXEL_PIN = 4; // D2
 constexpr int NEOPIXEL_COUNT = 24;
 constexpr int NEOPIXEL_CONFIG = NEO_GRB + NEO_KHZ800;

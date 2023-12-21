@@ -4,34 +4,29 @@
 #include <config.h>
 #include <light.h>
 
-Bounce bounce = Bounce();
+Bounce powerButton = Bounce();
 
 bool powerState = false;
 
 void setupPower() {
-    bounce.attach(POWER_SWITCH_PIN, INPUT_PULLUP); // USE INTERNAL PULL-UP
+    powerButton.attach(POWER_SWITCH_PIN, INPUT_PULLUP); // USE INTERNAL PULL-UP
     // DEBOUNCE INTERVAL IN MILLISECONDS
-    bounce.interval(5);
+    powerButton.interval(5);
 
     // LED SETUP
     pinMode(POWER_LIGHT_PIN, OUTPUT);
     digitalWrite(POWER_LIGHT_PIN, powerState);
 }
 
-bool getPowerState()
-{
-    return powerState;
-}
-
-void loopPower()
+bool loopPower()
 {
     // Update the Bounce instance (YOU MUST DO THIS EVERY LOOP)
-    bounce.update();
+    powerButton.update();
 
     // <Bounce>.changed() RETURNS true IF THE STATE CHANGED (FROM HIGH TO LOW OR LOW TO HIGH)
-    if (bounce.changed())
+    if (powerButton.changed())
     {
-        int deboucedInput = bounce.read();
+        int deboucedInput = powerButton.read();
         powerState = deboucedInput == LOW;
 
         digitalWrite(POWER_LIGHT_PIN, powerState); // WRITE THE NEW ledState
@@ -44,6 +39,8 @@ void loopPower()
             powerOffEvent();
         }
     }
+
+    return powerState;
 }
 
 void powerOnEvent() {

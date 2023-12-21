@@ -1,6 +1,5 @@
 void setupPower();
-bool getPowerState();
-void loopPower();
+bool loopPower();
 
 void powerOnEvent();
 void powerOffEvent();
