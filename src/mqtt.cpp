@@ -14,6 +14,8 @@ char msg[MSG_BUFFER_SIZE];
 
 Bounce primaryButton = Bounce();
 
+bool mqttConfigured = false;
+
 void newMessageCallback(char *topic, byte *payload, unsigned int length)
 {
     Serial.print("Message arrived [");
@@ -64,10 +66,8 @@ void reconnect()
 
 void setupMQTT()
 {
-    // MQTT will only connect when in the main loop
+    // MQTT will only configure when in the main loop, once configured by Wifi Portal
     randomSeed(micros());
-    client.setServer(MQTT_BROKER, MQTT_PORT);
-    client.setCallback(newMessageCallback);
 
     primaryButton.attach(PRIMARY_BUTTON_PIN, INPUT_PULLUP); // USE INTERNAL PULL-UP
     // DEBOUNCE INTERVAL IN MILLISECONDS
@@ -84,17 +84,25 @@ bool getLocalState()
     return primaryButton.read() == LOW;
 }
 
-void sendStateMQTT(bool newState)
+void sendStateMQTT(bool newState, WifiConfig wifiConfig)
 {
-    client.publish(MQTT_TOPIC, newState ? "1" : "0");
+    char mqtt_key[WIFI_CONFIG_LENGTH + sizeof(MQTT_TOPIC)];
+    sprintf(mqtt_key, "%s%s" , MQTT_TOPIC, wifiConfig.mqtt_channel);
+    client.publish(mqtt_key, newState ? "1" : "0");
 }
 
-void loopMQTT(WifiStateEnum wifiState)
+void loopMQTT(WifiConfig wifiConfig)
 {
 
-    if (wifiState != ConnectedWifi)
+    if (wifiConfig.state != ConnectedWifi)
     {
         return;
+    }
+    
+    if (!mqttConfigured) {
+        client.setServer(wifiConfig.mqtt_server, wifiConfig.mqtt_port);
+        client.setCallback(newMessageCallback);
+        mqttConfigured = true;
     }
 
     if (!client.connected())
@@ -106,17 +114,16 @@ void loopMQTT(WifiStateEnum wifiState)
 
     primaryButton.update();
 
-    // <Bounce>.changed() RETURNS true IF THE STATE CHANGED (FROM HIGH TO LOW OR LOW TO HIGH)
     if (primaryButton.changed())
     {
-        sendStateMQTT(primaryButton.read() == LOW);
+        sendStateMQTT(primaryButton.read() == LOW, wifiConfig);
     }
 
     unsigned long now = millis();
     if (now - lastMsg > 2500)
     {
         // Every 2.5s, resend current state
-        sendStateMQTT(primaryButton.read() == LOW);
+        sendStateMQTT(primaryButton.read() == LOW, wifiConfig);
         lastMsg = now;
     }
 }

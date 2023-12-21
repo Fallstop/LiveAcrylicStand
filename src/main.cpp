@@ -12,13 +12,13 @@ void setup() {
 }
 
 void loop() {
-	WifiStateEnum wifiState = loopWifi();
+	WifiConfig wifiConfig = loopWifi();
 
 	loopPower();
-	loopMQTT(wifiState);
+	loopMQTT(wifiConfig);
 
 	bool powerState = loopPower();
 	if (powerState) {
-		loopLight(wifiState);
+		loopLight(wifiConfig.state);
 	}
 }
