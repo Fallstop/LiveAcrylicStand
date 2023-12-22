@@ -13,6 +13,8 @@ void setupPower() {
     // DEBOUNCE INTERVAL IN MILLISECONDS
     powerButton.interval(5);
 
+    powerState = powerButton.read() == HIGH;
+
     // LED SETUP
     pinMode(POWER_LIGHT_PIN, OUTPUT);
     digitalWrite(POWER_LIGHT_PIN, powerState);
@@ -27,7 +29,7 @@ bool loopPower()
     if (powerButton.changed())
     {
         int deboucedInput = powerButton.read();
-        powerState = deboucedInput == LOW;
+        powerState = deboucedInput == HIGH;
 
         digitalWrite(POWER_LIGHT_PIN, powerState); // WRITE THE NEW ledState
         if (powerState)

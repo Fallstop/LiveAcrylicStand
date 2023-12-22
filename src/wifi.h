@@ -11,7 +11,8 @@ typedef struct WifiConfig {
     const WifiStateEnum state;
     const char * mqtt_server;
     const int mqtt_port;
-    const char * mqtt_channel;
+    const char * mqtt_channel_broadcast;
+    const char * mqtt_channel_listen;
 } WifiConfig;
 
 void setupWifi();

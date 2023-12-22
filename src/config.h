@@ -16,7 +16,7 @@ constexpr int NEOPIXEL_PIN = 4; // D2
 constexpr int NEOPIXEL_COUNT = 24;
 constexpr int NEOPIXEL_CONFIG = NEO_GRB + NEO_KHZ800;
 
-#define GLOW_COLOUR 255, 89, 0
+#define GLOW_COLOUR 255, 0, 89
 constexpr int STRONG_GLOW_BRIGHTNESS = 255;
 constexpr int WEAK_GLOW_BRIGHTNESS = 100;
 

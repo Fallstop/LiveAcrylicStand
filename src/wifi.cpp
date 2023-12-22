@@ -10,12 +10,16 @@ WiFiManager wm;
 
 WiFiManagerParameter custom_mqtt_server("mqtt_server", "MQTT Host", MQTT_BROKER_DEFAULT, WIFI_CONFIG_LENGTH);
 WiFiManagerParameter custom_mqtt_port("mqtt_port", "MQTT Port", MQTT_PORT_DEFAULT, WIFI_CONFIG_LENGTH);
-WiFiManagerParameter custom_mqtt_channel("mqtt_channel", "MQTT Channel", MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+WiFiManagerParameter mqtt_channel_broadcast("mqtt_channel_broadcast", "MQTT Channel Broadcast", MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+WiFiManagerParameter mqtt_channel_listen("mqtt_channel_listen", "MQTT Channel Listen", MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+
 
 void setupWifi() {
     custom_mqtt_server.setValue(MQTT_BROKER_DEFAULT, WIFI_CONFIG_LENGTH);
     custom_mqtt_port.setValue(MQTT_PORT_DEFAULT, WIFI_CONFIG_LENGTH);
-    custom_mqtt_channel.setValue(MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+    mqtt_channel_broadcast.setValue(MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+    mqtt_channel_listen.setValue(MQTT_CHANNEL_DEFAULT, WIFI_CONFIG_LENGTH);
+
 
     wifiState = ConnectingWifi;
 
@@ -30,7 +34,9 @@ void setupWifi() {
 
     wm.addParameter(&custom_mqtt_server);
     wm.addParameter(&custom_mqtt_port);
-    wm.addParameter(&custom_mqtt_channel);
+    wm.addParameter(&mqtt_channel_broadcast);
+    wm.addParameter(&mqtt_channel_listen);
+
 
     // reset settings - wipe stored credentials for testing
     // wm.resetSettings();
@@ -56,7 +62,8 @@ WifiConfig loopWifi() {
         .state = wifiState,
         .mqtt_server = custom_mqtt_server.getValue(),
         .mqtt_port = atoi(custom_mqtt_port.getValue()),
-        .mqtt_channel = custom_mqtt_channel.getValue(),
+        .mqtt_channel_broadcast = mqtt_channel_broadcast.getValue(),
+        .mqtt_channel_listen = mqtt_channel_listen.getValue()
     };
 }
 
@@ -83,12 +90,13 @@ int loadConfig() {
 
                     custom_mqtt_server.setValue(doc["mqtt_server"], strlen(doc["mqtt_server"]));
                     custom_mqtt_port.setValue(doc["mqtt_port"], strlen(doc["mqtt_port"]));
-                    custom_mqtt_channel.setValue(doc["mqtt_channel"], strlen(doc["mqtt_channel"]));
+                    mqtt_channel_broadcast.setValue(doc["mqtt_channel_broadcast"], strlen(doc["mqtt_channel_broadcast"]));
+                    mqtt_channel_listen.setValue(doc["mqtt_channel_listen"], strlen(doc["mqtt_channel_listen"]));
 
                     Serial.print(" -> MQTT URI: ");
                     Serial.printf("%s:%s\n", custom_mqtt_server.getValue(), custom_mqtt_port.getValue());
                     Serial.print(" -> MQTT channel: ");
-                    Serial.printf("%s\n", custom_mqtt_channel.getValue());
+                    Serial.printf("%s : \n", mqtt_channel_broadcast.getValue(), mqtt_channel_listen.getValue());
                     
                 }
                 configFile.close();
@@ -106,7 +114,8 @@ void saveConfig() {
     DynamicJsonDocument doc(1024);
     doc["mqtt_server"] = custom_mqtt_server.getValue();
     doc["mqtt_port"] = custom_mqtt_port.getValue();
-    doc["mqtt_channel"] = custom_mqtt_channel.getValue();
+    doc["mqtt_channel_broadcast"] = mqtt_channel_broadcast.getValue();
+    doc["mqtt_channel_listen"] = mqtt_channel_listen.getValue();
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {

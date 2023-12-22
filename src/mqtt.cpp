@@ -1,5 +1,5 @@
+#include <mqtt.h>
 #include <config.h>
-#include <wifi.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <Bounce2.h>
@@ -16,7 +16,11 @@ Bounce primaryButton = Bounce();
 
 bool mqttConfigured = false;
 
-void newMessageCallback(char *topic, byte *payload, unsigned int length)
+char mqtt_broadcast_key[WIFI_CONFIG_LENGTH + sizeof(MQTT_TOPIC)];
+char mqtt_listen_key[WIFI_CONFIG_LENGTH + sizeof(MQTT_TOPIC)];
+
+
+void newMessageCallback(char *topic, unsigned char *payload, unsigned int length)
 {
     Serial.print("Message arrived [");
     Serial.print(topic);
@@ -35,7 +39,7 @@ void newMessageCallback(char *topic, byte *payload, unsigned int length)
     }
 }
 
-void reconnect()
+void reconnect(WifiConfig wifiConfig)
 {
     // Loop until we're reconnected
     while (!client.connected())
@@ -48,10 +52,7 @@ void reconnect()
         if (client.connect(clientId.c_str()))
         {
             Serial.println("connected");
-            // Once connected, publish an announcement...
-            client.publish("outTopic", "hello world");
-            // ... and resubscribe
-            client.subscribe("inTopic");
+            client.subscribe(mqtt_listen_key);
         }
         else
         {
@@ -72,6 +73,7 @@ void setupMQTT()
     primaryButton.attach(PRIMARY_BUTTON_PIN, INPUT_PULLUP); // USE INTERNAL PULL-UP
     // DEBOUNCE INTERVAL IN MILLISECONDS
     primaryButton.interval(5);
+
 }
 
 bool getRemoteState()
@@ -86,9 +88,7 @@ bool getLocalState()
 
 void sendStateMQTT(bool newState, WifiConfig wifiConfig)
 {
-    char mqtt_key[WIFI_CONFIG_LENGTH + sizeof(MQTT_TOPIC)];
-    sprintf(mqtt_key, "%s%s" , MQTT_TOPIC, wifiConfig.mqtt_channel);
-    client.publish(mqtt_key, newState ? "1" : "0");
+    client.publish(mqtt_broadcast_key, newState ? "1" : "0");
 }
 
 void loopMQTT(WifiConfig wifiConfig)
@@ -100,6 +100,7 @@ void loopMQTT(WifiConfig wifiConfig)
     }
     
     if (!mqttConfigured) {
+        setMQTTKey(wifiConfig);
         client.setServer(wifiConfig.mqtt_server, wifiConfig.mqtt_port);
         client.setCallback(newMessageCallback);
         mqttConfigured = true;
@@ -107,7 +108,7 @@ void loopMQTT(WifiConfig wifiConfig)
 
     if (!client.connected())
     {
-        reconnect();
+        reconnect(wifiConfig);
     }
 
     client.loop();
@@ -126,4 +127,9 @@ void loopMQTT(WifiConfig wifiConfig)
         sendStateMQTT(primaryButton.read() == LOW, wifiConfig);
         lastMsg = now;
     }
+}
+
+void setMQTTKey(WifiConfig wifiConfig) {
+    sprintf(mqtt_broadcast_key, "%s%s" , MQTT_TOPIC, wifiConfig.mqtt_channel_broadcast);
+    sprintf(mqtt_listen_key, "%s%s" , MQTT_TOPIC, wifiConfig.mqtt_channel_listen);
 }
